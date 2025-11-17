@@ -18,9 +18,13 @@ public class VoiceSystem : MonoBehaviour
     [SerializeField] private VoiceMode voiceMode = VoiceMode.UnityNative;
     
     [Header("Voice Personality")]
-    [SerializeField] private float basePitch = 1.2f; // Slightly higher for teenager
+    [SerializeField] private float basePitch = 1.0f;
     [SerializeField] private float baseSpeed = 1.0f;
-    [SerializeField] private float emotionPitchVariation = 0.3f; // How much emotion affects pitch
+    [SerializeField] private float emotionPitchVariation = 0.2f; // How much emotion affects pitch
+    
+    [Header("Windows SAPI Voice Selection")]
+    [SerializeField] private string preferredVoiceName = ""; // Leave empty for default, or specify like "Microsoft Zira Desktop" or "Microsoft David Desktop"
+    [SerializeField] private bool useNeuralVoice = true; // Try to use neural voices (Windows 11) if available
     
     [Header("Audio")]
     [SerializeField] private AudioSource audioSource;
@@ -216,7 +220,7 @@ public class VoiceSystem : MonoBehaviour
     
     private IEnumerator SpeakWindowsSAPI(string text, EmotionalState.Emotion emotion)
     {
-        // Windows SAPI implementation using PowerShell
+        // Windows SAPI implementation using PowerShell with better voice selection
         float duration = EstimateSpeechDuration(text);
         Debug.Log($"[Voice] Windows TTS: Speaking '{text}' (duration: {duration}s)");
         
@@ -233,8 +237,24 @@ public class VoiceSystem : MonoBehaviour
             
             int rate = CalculateSpeechRate(emotion);
             
-            // Use PowerShell with file input to avoid escaping issues
-            string command = $"-Command \"$text = Get-Content '{tempFile}' -Raw; Add-Type -AssemblyName System.Speech; $synth = New-Object System.Speech.Synthesis.SpeechSynthesizer; $synth.Rate = {rate}; $synth.Volume = 100; $synth.Speak($text); Remove-Item '{tempFile}'\"";
+            // Build PowerShell command with voice selection
+            string voiceSelection = "";
+            if (!string.IsNullOrEmpty(preferredVoiceName))
+            {
+                voiceSelection = $"$synth.SelectVoice('{preferredVoiceName}'); ";
+            }
+            else if (useNeuralVoice)
+            {
+                // Try to select a neural voice (Windows 11) - they sound more natural
+                voiceSelection = @"
+$voices = $synth.GetInstalledVoices();
+$neuralVoice = $voices | Where-Object { $_.VoiceInfo.Name -like '*Neural*' -or $_.VoiceInfo.Name -like '*Aria*' -or $_.VoiceInfo.Name -like '*Jenny*' } | Select-Object -First 1;
+if ($neuralVoice) { $synth.SelectVoice($neuralVoice.VoiceInfo.Name); }
+";
+            }
+            
+            // Use PowerShell with file input and better voice settings
+            string command = $@"-Command ""$text = Get-Content '{tempFile}' -Raw; Add-Type -AssemblyName System.Speech; $synth = New-Object System.Speech.Synthesis.SpeechSynthesizer; {voiceSelection}$synth.Rate = {rate}; $synth.Volume = 100; $synth.SetOutputToDefaultAudioDevice(); $synth.Speak($text); Remove-Item '{tempFile}'""";
             
             System.Diagnostics.ProcessStartInfo psi = new System.Diagnostics.ProcessStartInfo
             {
@@ -246,7 +266,7 @@ public class VoiceSystem : MonoBehaviour
                 RedirectStandardError = true
             };
             
-            Debug.Log($"[Voice] Starting PowerShell TTS process...");
+            Debug.Log($"[Voice] Starting PowerShell TTS process with voice selection...");
             process = System.Diagnostics.Process.Start(psi);
             
             if (process != null)
@@ -523,25 +543,26 @@ public class VoiceSystem : MonoBehaviour
     
     private int CalculateSpeechRate(EmotionalState.Emotion emotion)
     {
-        // Words per minute (default ~150)
-        int baseRate = 150;
+        // SAPI Rate: -10 (slowest) to +10 (fastest), 0 is normal
+        // Convert to SAPI rate scale for more natural variation
+        int baseRate = 0; // Normal speed
         
         switch (emotion)
         {
             case EmotionalState.Emotion.Angry:
             case EmotionalState.Emotion.Defiant:
-                return (int)(baseRate * 1.3f); // Faster when angry
+                return Mathf.Clamp(baseRate + 2, -10, 10); // Slightly faster when angry
             
             case EmotionalState.Emotion.Sad:
             case EmotionalState.Emotion.Anxious:
-                return (int)(baseRate * 0.8f); // Slower when sad
+                return Mathf.Clamp(baseRate - 2, -10, 10); // Slightly slower when sad
             
             case EmotionalState.Emotion.Happy:
             case EmotionalState.Emotion.Receptive:
-                return (int)(baseRate * 1.1f); // Slightly faster when happy
+                return Mathf.Clamp(baseRate + 1, -10, 10); // Slightly faster when happy
             
             default:
-                return baseRate;
+                return baseRate; // Normal speed
         }
     }
     
