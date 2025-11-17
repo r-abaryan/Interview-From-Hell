@@ -1,345 +1,215 @@
-# Teen Persuasion Simulator - ML-Agents Project
+# Job Interview From Hell 🎤💼
 
-An innovative ML-Agents game where you interact with a realistic AI-powered teenager. The teen learns to respond authentically to different parenting approaches through reinforcement learning.
+A voice-powered interview game where you must survive 5 absurd questions from an AI interviewer. Answer using your **real voice** (or text), and the AI evaluates your emotion, tone, confidence, and meaning. The interviewer gets angry, misunderstands you, changes topics, and tests your patience.
 
-## 🎮 Concept
+**Goal**: Survive 5 questions without getting rejected!
 
-You play as a parent/guardian trying to convince a teenager to cooperate with various tasks (going to school, doing homework, cleaning their room, etc.). The teen is an ML-Agent that learns realistic emotional responses based on:
+## 🎮 Features
 
-- **Relationship quality** with the player
-- **Current emotional state** (mood, stress, trust)
-- **How you treat them** (respectful vs authoritarian)
-- **Context** (time of day, tiredness, hunger)
-
-The goal is to train an AI that responds realistically - not just compliant, but with the full range of teenage emotional complexity!
-
-## 🎯 Features
-
-### Core Systems
-- **EmotionalState System**: Tracks relationship, mood, trust, stress, autonomy needs, and respect
-- **8 Teen Response Types**: Compliant, Calm Negotiation, Sarcastic, Angry, Dismissive, Emotional Plead, Defiant, Reasonable Refusal
-- **7 Player Action Types**: Authoritarian, Empathetic, Logical, Bribery, Guilt Trip, Listen, Compromise
-- **6 Scenario Types**: School refusal, homework avoidance, room cleaning, screen time limits, bedtime, family time
-
-### AI Learning
-- Teen learns which responses are realistic for different emotional states
-- Rewards for consistency between emotion and response
-- Learns that good relationships lead to better cooperation
-- Develops context-aware behavior patterns
-
-### Gameplay Modes
-- **Training Mode**: ML-Agents trains the teen AI
-- **Play Mode**: You (human) interact with the trained AI teen
-- **Demo Mode**: Watch the trained AI play
+- **Voice Input**: Speak your answers (Whisper STT) or type them
+- **AI Interviewer**: Powered by Ollama (Phi-3) with unpredictable personality
+- **Voice Analysis**: Pitch, volume, pauses, confidence, nervousness detection
+- **Sentiment Analysis**: Emotion, assertiveness, humor detection
+- **Dynamic Questions**: Absurd, unpredictable questions with validation rules
+- **Mood System**: Interviewer has 6 moods (Professional, Confused, Annoyed, Aggressive, Amused, Unhinged)
+- **Text-to-Speech**: Interviewer speaks responses (optional)
 
 ## 📋 Requirements
 
-### Software Requirements
+### Software
 - **Unity 2022.3 LTS or newer**
-- **ML-Agents Package 2.0.2** (already imported)
-- **Python 3.9 - 3.11**
-- **PyTorch 1.7.1+**
-- **ML-Agents Python Package**
+- **Ollama** (for LLM) - [Install](https://ollama.ai)
+- **Whisper Server** (optional, for voice transcription) - Default: `http://localhost:9000/inference`
 
-### Hardware Recommendations
-- **CPU**: Modern multi-core processor
-- **RAM**: 8GB minimum, 16GB recommended
-- **GPU**: Optional but speeds up training significantly
-- **Storage**: 2GB free space for models and logs
+### Hardware
+- **Microphone** (for voice input)
+- **8GB RAM** minimum
+- **GPU** (optional, for faster LLM inference)
 
-## 🚀 Setup Instructions
+## 🚀 Quick Setup
 
-### 1. Verify Python Environment
-
-Open your terminal/command prompt and verify your conda environment:
+### 1. Install Ollama
 
 ```bash
-# Check Python version (should be 3.9-3.11)
-python --version
-
-# Check if PyTorch is installed
-python -c "import torch; print(torch.__version__)"
+# Download from https://ollama.ai or:
+# Windows: Download installer
+# Mac/Linux: curl -fsSL https://ollama.ai/install.sh | sh
 ```
 
-### 2. Install ML-Agents Python Package
+### 2. Pull Phi-3 Model
 
 ```bash
-# Activate your conda environment (if using one)
-conda activate your_env_name
-
-# Install ML-Agents
-pip install mlagents==0.30.0
-
-# Verify installation
-mlagents-learn --help
+ollama pull phi3
 ```
 
-### 3. Unity Scene Setup
-
-1. **Open Unity** and load this project
-2. **Open the Sample Scene**: `Assets/Scenes/SampleScene.unity`
-
-3. **Create the Teen Agent GameObject**:
-   - Create an empty GameObject named "TeenAgent"
-   - Add the `TeenAgent` script component
-   - Add a `Behavior Parameters` component:
-     - Behavior Name: `TeenAgent`
-     - Vector Observation Space Size: `25`
-     - Actions: Discrete Branch 0 = `8` (8 response types)
-   - Add a `Decision Requester` component:
-     - Decision Period: `5`
-
-4. **Create the Managers GameObject**:
-   - Create an empty GameObject named "Managers"
-   - Add these components:
-     - `ConversationManager`
-     - `ScenarioManager`
-     - `PlayerController`
-     - `GameManager`
-     - `DialogueDatabase`
-
-5. **Link References**:
-   - In `GameManager`, assign all the manager references
-   - In `TeenAgent`, assign the `ConversationManager`
-   - In `ConversationManager`, assign `TeenAgent`, `PlayerController`, and `DialogueUI`
-
-6. **Create UI (Optional but recommended)**:
-   - Create a Canvas with `DialogueUI` script
-   - Add UI elements for dialogue display and player buttons
-   - Or use the basic debug UI provided by `GameManager`
-
-### 4. Test the Setup
-
-1. **Press Play** in Unity
-2. You should see:
-   - Debug overlay showing teen's emotional state
-   - Console logs about episode starting
-   - Teen's opening dialogue (if UI is set up)
-
-3. **Test keyboard controls**:
-   - Press `1-7` to trigger different player actions
-   - Press `R` to restart episode
-   - Press `T` to toggle game modes
-
-## 🏋️ Training the Agent
-
-### Training Workflow
-
-#### Step 1: Start Training
-
-Open terminal in your project root folder:
+### 3. Start Ollama (if not running)
 
 ```bash
-mlagents-learn Assets/TrainingConfigs/TeenAgent.yaml --run-id=teen-training-01
-
+ollama serve
+# Should be available at http://localhost:11434
 ```
 
-#### Step 2: Start Unity
+### 4. Unity Setup
 
-When you see `"Start training by pressing the Play button in the Unity Editor"`, press **Play** in Unity.
+1. **Open Unity** and load the project
+2. **Open the Interview Scene**
+3. **Find InterviewManager GameObject** (or create one)
+4. **Assign Components**:
+   - `InterviewerAI` script
+   - `LLMManager` script
+   - `WhisperSTT` script (optional)
+   - `VoiceAnalyzer` script
+   - `SentimentAnalyzer` script
+   - `QuestionManager` script
+   - `VoiceSystem` script (optional, for TTS)
 
-#### Step 3: Monitor Training
+5. **Link References** in `InterviewerAI`:
+   - Assign all component references
+   - Set `maxStrikes = 3`
 
-The terminal will show:
-- **Mean Reward**: Average reward per episode (should increase)
-- **Episode Length**: How many interactions per conversation
-- **Policy Loss**: Neural network learning progress
+6. **Setup UI** (or use `InterviewUIBuilder`):
+   - Canvas with start screen, interview panel, result panel
+   - Assign UI elements to `InterviewUI` script
 
-**TensorBoard** (optional visualization):
-```bash
-# In a new terminal
-tensorboard --logdir results
-# Open browser to http://localhost:6006
-```
+### 5. Test
 
-### Training Tips
+1. Press **Play** in Unity
+2. Click **Start** button
+3. Answer questions using **MIC button** or **text input**
+4. Survive 5 questions!
 
-#### Expected Timeline
-- **1M steps** (~2-4 hours): Basic responses learned
-- **3M steps** (~6-12 hours): Consistent emotional responses
-- **5M steps** (~12-24 hours): Sophisticated context-aware behavior
+## 🎯 How It Works
 
-#### What to Look For
-- **Mean Reward** trending upward
-- **Episode Length** stabilizing around 3-5 interactions
-- Successful compliance in ~40-60% of episodes (realistic!)
+### Question Types
 
-#### If Training Seems Stuck
-- Check that Mean Reward is changing
-- Ensure Unity is running and episodes are completing
-- Try reducing `learning_rate` to `0.0001`
-- Increase `curiosity` strength to encourage exploration
+1. **Forbidden Words**: Can't use specific words
+2. **Must Be Emotional**: Requires passionate/emotional response
+3. **Must Be Confident**: No hesitation, nervousness
+4. **Must Be Creative**: Minimum word count, variety
+5. **Voice Acting**: Must sound different from normal speech
 
-### Training Configurations
+### Validation
 
-#### Basic Training (Start Here)
-```bash
-mlagents-learn Assets/TrainingConfigs/TeenAgent.yaml --run-id=teen-basic
-```
-- 5M steps
-- 256 hidden units
-- Good for initial training
+Each answer is evaluated on:
+- **Voice Metrics**: Pitch, volume, pauses, speech rate, confidence
+- **Sentiment**: Emotion, assertiveness, nervousness, humor
+- **Content**: Word count, forbidden words, creativity
 
-#### Advanced Training (After Basic Works)
-```bash
-mlagents-learn Assets/TrainingConfigs/TeenAgent_Advanced.yaml --run-id=teen-advanced
-```
-- 10M steps
-- 512 hidden units with 4 layers
-- Includes curiosity and self-play support
-- Better quality but slower training
+### Interviewer Moods
 
-### Resume Training
-```bash
-mlagents-learn Assets/TrainingConfigs/TeenAgent.yaml --run-id=teen-training-01 --resume
-```
+- **Professional**: Normal questions
+- **Confused**: Misunderstands answers
+- **Annoyed**: Gets frustrated easily
+- **Aggressive**: Angry, confrontational
+- **Amused**: Finds things funny
+- **Unhinged**: Random chaos mode
 
-## 🎮 Playing with the Trained Agent
+## ⚙️ Configuration
 
-### Load Trained Model
+### LLM Settings (`LLMManager`)
 
-1. After training, find your model: `results/teen-training-01/TeenAgent.onnx`
-2. Copy it to: `Assets/TrainedModels/` (create folder if needed)
-3. In Unity, select the TeenAgent GameObject
-4. In `Behavior Parameters`:
-   - Model: Drag your `.onnx` file here
-   - Inference Device: CPU or GPU
-
-### Play Mode
-
-1. In `GameManager`, set `currentMode = Play`
-2. Press Play in Unity
-3. Interact with the teen using the UI buttons or keyboard (1-7)
-4. Observe how the teen responds based on your approach!
-
-### Testing Different Approaches
-
-Try experimenting with:
-- **Authoritarian approach**: See how quickly relationship degrades
-- **Empathetic approach**: Build trust and see cooperation improve
-- **Mixed strategies**: Realistic parenting!
-- **Extreme scenarios**: Very negative initial mood - can you turn it around?
-
-## 📊 Understanding the Reward System
-
-### What Makes a Good Teen Response?
-
-The agent is rewarded for:
-1. **Emotional Realism**: Angry responses when mood is bad, compliant when relationship is good
-2. **Consistency**: Response matches current emotional state
-3. **Relationship Maintenance**: Not alienating the player completely
-4. **Situational Appropriateness**: Context-aware reactions
-
-### Not Just About Compliance!
-
-Important: The teen is NOT trained to always obey. It's trained to respond **realistically**:
-- High relationship + respectful treatment = more likely to comply
-- Low relationship + authoritarian treatment = defiance/anger
-- This mimics real teenage psychology!
-
-## 🎨 Customization Ideas
-
-### Adjust Personality
-In `TeenAgent.OnEpisodeBegin()`, modify the emotional state ranges:
 ```csharp
-emotionalState.autonomyNeed = Random.Range(40f, 70f);  // Less rebellious teen
-emotionalState.relationshipLevel = Random.Range(0f, 60f);  // Start with better relationship
+ollamaEndpoint = "http://localhost:11434/api/generate"
+modelName = "phi3"
+maxTokens = 100
+temperature = 0.9f
 ```
 
-### Add New Scenarios
-1. Add to `ScenarioType` enum in `TeenAgent.cs`
-2. Add dialogue in `DialogueDatabase.cs`
-3. Add tips in `ScenarioManager.cs`
+### Whisper STT (`WhisperSTT`)
 
-### Modify Rewards
-In `TeenAgent.ApplyTeenResponse()`, adjust reward values to encourage different behaviors:
 ```csharp
-complianceReward = 2.0f;  // Increase if you want more compliance
+whisperEndpoint = "http://localhost:9000/inference"
+useLocalWhisper = true  // Set false to use text input only
 ```
 
-### Add New Response Types
-1. Add to `TeenAgent.TeenResponse` enum
-2. Update `TeenAgent.OnActionReceived()` discrete action space
-3. Add dialogue in `DialogueDatabase.cs`
-4. Update neural network output size in Behavior Parameters
+### Interview Settings (`InterviewerAI`)
+
+```csharp
+maxStrikes = 3  // Fail after 3 strikes
+```
+
+## 🎤 Voice Setup (Optional)
+
+### Option 1: Use Whisper Server
+
+1. Run a Whisper server on port 9000
+2. Set `useLocalWhisper = true` in `WhisperSTT`
+3. Voice input will be transcribed
+
+### Option 2: Text Input Only
+
+1. Set `useLocalWhisper = false` in `WhisperSTT`
+2. Use the text input field to type answers
+3. Voice analysis will use default metrics
 
 ## 🐛 Troubleshooting
 
-### "Python is not installed"
-- Ensure Python 3.9-3.11 is installed
-- Add Python to your PATH environment variable
+### "Cannot connect to Ollama"
+- Make sure Ollama is running: `ollama serve`
+- Check `ollamaEndpoint` in `LLMManager` (default: `http://localhost:11434`)
+- Test: `curl http://localhost:11434/api/tags`
 
-### "No module named 'mlagents'"
-```bash
-pip install mlagents==0.30.0
+### "Cannot transcribe"
+- Whisper server not running or wrong endpoint
+- Use text input instead (set `useLocalWhisper = false`)
+- Check `whisperEndpoint` in `WhisperSTT`
+
+### Interviewer not responding
+- Check Unity Console for errors
+- Verify `LLMManager` is assigned to `InterviewerAI`
+- Test Ollama connection: `ollama list`
+
+### Buttons not working
+- Ensure `EventSystem` exists in scene
+- Check `GraphicRaycaster` on Canvas
+- Verify `InputSystemUIInputModule` is used (if using new Input System)
+
+## 📚 Project Structure
+
+```
+Assets/Scripts/Interview/
+├── InterviewerAI.cs          # Main game controller
+├── LLMManager.cs             # Ollama integration
+├── WhisperSTT.cs              # Speech-to-text
+├── VoiceAnalyzer.cs           # Voice metrics analysis
+├── SentimentAnalyzer.cs       # Text sentiment analysis
+├── QuestionManager.cs         # Question database
+├── InterviewUI.cs             # UI controller
+└── InterviewUIBuilder.cs      # Auto UI builder (optional)
 ```
 
-### Unity ML-Agents not responding
-- Check console for errors
-- Verify Behavior Parameters settings
-- Ensure Decision Requester is attached
+## 🎨 Customization
 
-### Training not starting
-- Make sure to press Play in Unity AFTER `mlagents-learn` command
-- Check that behavior name matches in both Unity and YAML file
+### Add New Questions
 
-### Agent behaving randomly after training
-- Training may need more steps
-- Check that correct .onnx model is loaded
-- Verify Inference Device is set correctly
+Edit `QuestionManager.cs`:
+```csharp
+new Question {
+    questionText = "Your question here",
+    validationType = ValidationType.MustBeConfident,
+    forbiddenWords = new string[] { "um", "uh" }
+}
+```
 
-### OutOfMemoryError during training
-- Reduce `batch_size` in YAML config
-- Reduce `buffer_size` in YAML config
-- Close other applications
+### Change Interviewer Personality
 
-## 📚 Learning Resources
+Edit `LLMManager.cs` system prompt:
+```csharp
+systemPrompt = @"You are an absurd, unpredictable AI job interviewer...";
+```
 
-### ML-Agents Documentation
-- [Official ML-Agents Docs](https://github.com/Unity-Technologies/ml-agents/blob/main/docs/Readme.md)
-- [Training Configuration](https://github.com/Unity-Technologies/ml-agents/blob/main/docs/Training-Configuration-File.md)
-- [PPO Algorithm](https://github.com/Unity-Technologies/ml-agents/blob/main/docs/Training-PPO.md)
+### Adjust Voice Analysis
 
-### Understanding Reinforcement Learning
-- Reward shaping is critical for realistic behavior
-- This project uses **sparse rewards** (mostly at episode end)
-- **Curiosity** helps explore the space of emotional responses
-
-## 🎯 Project Goals & Philosophy
-
-This project demonstrates:
-1. **AI for Social Simulation**: Using RL for human-like emotional behavior
-2. **Ethical AI Training**: Rewarding realistic responses, not just obedience
-3. **Educational Value**: Understanding teenage psychology and communication
-4. **Game Design**: Making parenting challenges into engaging gameplay
-
-### Why This Matters
-Traditional games have scripted NPC responses. This teen *learns* to respond contextually, creating unique, emergent interactions every time. It's a step toward truly dynamic, believable AI characters in games.
-
-## 🤝 Contributing & Extending
-
-Ideas for extension:
-- **Multiple Teen Personalities**: Train different models for different personality types
-- **Multiplayer**: Multiple players try to convince the same teen
-- **Parenting Metrics**: Score players on long-term relationship building
-- **Narrative Integration**: Use in a story-driven game
-- **Educational Tool**: Help parents practice communication strategies
+Edit `VoiceAnalyzer.cs` thresholds:
+```csharp
+confidenceThreshold = 0.6f
+nervousnessThreshold = 0.4f
+```
 
 ## 📄 License
 
-This project is for educational and research purposes. Feel free to extend and modify!
+Educational and research purposes. Feel free to extend!
 
 ---
 
-## 🎉 Next Steps
-
-1. ✅ **Setup Complete** - You have all the components
-2. ⏭️ **Test in Unity** - Press Play and verify everything works
-3. 🏋️ **Start Training** - Run `mlagents-learn` command
-4. 🎮 **Play with AI** - Test your trained teen agent
-5. 🔧 **Customize** - Make it your own!
-
----
-
-**Good luck, and remember**: The goal isn't to create a perfectly obedient teen, but a *realistically* responsive one! 🧠✨
-
+**Good luck surviving the interview from hell!** 😈🎤
