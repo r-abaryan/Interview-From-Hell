@@ -11,7 +11,7 @@ public class LLMManager : MonoBehaviour
 {
     [Header("LLM Settings")]
     [SerializeField] private string ollamaEndpoint = "http://localhost:11434/api/generate";
-    [SerializeField] private string modelName = "phi3";
+    [SerializeField] private string modelName = "phi";
     [SerializeField] private float temperature = 0.9f;
     [SerializeField] private int maxTokens = 100;
     
